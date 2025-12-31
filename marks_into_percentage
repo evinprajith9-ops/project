@@ -1,0 +1,9 @@
+# print("Enter marks obtained (out of 100) in the below 4 subjects:")
+# maths=int(input("Maths :"))
+# english=int(input("English :"))
+# computer=int(input("Computer :"))
+# science=int(input("Science :"))
+# total_marks_obtained=science+english+computer+science
+# print(total_marks_obtained)
+# total_percentage=total_marks_obtained/4
+# print("Percentage =",total_percentage,"%")
