@@ -1,0 +1,3 @@
+# body_temperature=37
+# if body_temperature != 37:
+#     print("Not a healty body temperature")
