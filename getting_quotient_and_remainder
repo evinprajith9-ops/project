@@ -1,0 +1,6 @@
+# integer_1=int(input("Enter your first number :"))
+# integer_2=int(input("Enter your second number :"))
+# quotient=integer_1//integer_2
+# remainder=integer_1%integer_2
+# print("Quotient =",quotient)
+# print("Remainder =",remainder)
