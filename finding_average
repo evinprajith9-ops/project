@@ -1,0 +1,6 @@
+# age_1=25
+# age_2=35
+# age_3=50
+# sum=age_1+age_2+age_3
+# average=sum/3
+# print("average =",average)
