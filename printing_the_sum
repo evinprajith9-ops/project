@@ -1,0 +1,6 @@
+# Num_1=input("Enter your 1st Number : ")
+# No_1=int(Num_1)
+# Num_2=input("Enter your 2nd Number : ")
+# No_2=int(Num_2)
+# total=No_1+No_2
+# print("Total -",total)
