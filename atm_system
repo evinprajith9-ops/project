@@ -1,0 +1,10 @@
+# print("Welcome to ATM")
+# amount=int(input("Enter amount (in multiples of 100) to withdraw :"))
+# note_500=amount//500
+# print("500 note count :",note_500)
+# remaining_amount=amount%500
+# note_200=remaining_amount//200
+# print("200 note count :",note_200)
+# remaining_amount=remaining_amount%200
+# note_100=remaining_amount//100
+# print("100 note count :",note_100)
