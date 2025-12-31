@@ -1,0 +1,20 @@
+# x=4
+# y=5
+# print(x+y)
+
+# a="4"
+# b="5"
+# print(a+b)
+
+# print(type(x))
+# print(type(a))
+ 
+# weight_in_kg=64.5
+# print(type(weight_in_kg))
+
+# is_married=False
+# print(type(is_married))
+
+# birth_year=input("Enter your birth year: ")
+# age=2025-int(birth_year)
+# print(age)
