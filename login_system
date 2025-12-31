@@ -1,0 +1,8 @@
+# correct_username="Evin"
+# correct_password="1515"
+# entered_username=input("Enter your username :")
+# entered_password=input("Enter your password :")
+# if entered_password == correct_password and entered_username == correct_username:
+#     print("Login successful")
+# else:
+#     print("The Username or the password is incorrect")
