@@ -1,0 +1,5 @@
+entered_number=int(input("Enter a number to check if it is a multiple of 9 :"))
+if entered_number % 9 == 0:
+    print("it is divisible by 9")
+else:
+    print("it is not divisible by 9")
