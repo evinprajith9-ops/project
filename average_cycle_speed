@@ -1,0 +1,12 @@
+cyclist1_speed=int(input("Enter speed of cyclist 1 (km/h) :"))
+cyclist2_speed=int(input("Enter speed of cyclist 2 (km/h) :"))
+cyclist3_speed=int(input("Enter speed of cyclist 3 (km/h) :"))
+average=(cyclist1_speed+cyclist2_speed+cyclist3_speed)/3
+average=round(average,1)
+print("Average Speed :",average)
+if cyclist1_speed < average:
+    print("Cyclist 1 is slower than the average")
+if cyclist2_speed < average:
+    print("Cyclist 2 is slower than the average")
+if cyclist3_speed < average:
+    print("Cyclist 3 is slower than the average")
