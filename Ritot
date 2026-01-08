@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritot - Empowering Digital Excellence</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Navigation */
+        nav {
+            background: rgba(0, 0, 0, 0.95);
+            padding: 1rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid #ff6b35;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            animation: float 3s ease-in-out infinite;
+            cursor: pointer;
+        }
+
+        .logo-dot {
+            color: #ff6b35;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.3); }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .nav-links a:hover {
+            color: #ff6b35;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #ff6b35;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000, #1a1a1a, #000);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            color: #ccc;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.3s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cta-button {
+            background: #ff6b35;
+            color: #fff;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            animation: fadeInUp 1s ease 0.6s backwards;
+        }
+
+        .cta-button:hover {
+            background: #ff8555;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+        }
+
+        .chrome-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ff6b35;
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.5);
+            transition: all 0.3s;
+        }
+
+        .chrome-btn:hover {
+            background: #ff8555;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.7);
+        }
+
+        .action-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 1rem;
+            z-index: 1001;
+        }
+
+        .action-btn {
+            background: #ff6b35;
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.5);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn:hover {
+            background: #ff8555;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.7);
+        }
+
+        .share-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .share-modal.active {
+            display: flex;
+        }
+
+        .share-content {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #ff6b35;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .share-content h3 {
+            color: #ff6b35;
+            margin-bottom: 1.5rem;
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .share-option {
+            background: rgba(255, 107, 53, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .share-option:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: #ff6b35;
+            transform: scale(1.05);
+        }
+
+        .close-modal {
+            background: transparent;
+            border: 2px solid #ff6b35;
+            color: #ff6b35;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            background: #ff6b35;
+            color: #fff;
+        }
+
+        /* Sections */
+        section {
+            padding: 5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #ff6b35;
+            position: relative;
+            display: inline-block;
+        }
+
+        section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50%;
+            height: 3px;
+            background: #ff6b35;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: #ff6b35;
+            box-shadow: 0 15px 40px rgba(255, 107, 53, 0.3);
+        }
+
+        .card h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .expand-btn {
+            background: transparent;
+            border: 2px solid #ff6b35;
+            color: #ff6b35;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .expand-btn:hover {
+            background: #ff6b35;
+            color: #fff;
+        }
+
+        .extra-info {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            margin-top: 1rem;
+            color: #ccc;
+        }
+
+        .extra-info.active {
+            max-height: 500px;
+        }
+
+        /* JavaScript Learning Section */
+        .js-topics {
+            background: rgba(255, 107, 53, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-top: 2rem;
+        }
+
+        .topic-item {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #ff6b35;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .topic-item:hover {
+            background: rgba(255, 107, 53, 0.1);
+            transform: translateX(10px);
+        }
+
+        /* Footer */
+        footer {
+            background: #0a0a0a;
+            padding: 3rem 5%;
+            text-align: center;
+            border-top: 2px solid #ff6b35;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-links a {
+            color: #ff6b35;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #ff8555;
+        }
+
+        /* Animated Background Elements */
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 50%;
+            animation: floatShape 20s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            width: 100px;
+            height: 100px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 5s;
+        }
+
+        .shape:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            bottom: 20%;
+            left: 50%;
+            animation-delay: 10s;
+        }
+
+        @keyframes floatShape {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            33% {
+                transform: translate(30px, -50px) rotate(120deg);
+            }
+            66% {
+                transform: translate(-20px, 30px) rotate(240deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            section h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <nav>
+        <div class="nav-container">
+            <div class="logo" onclick="window.open(window.location.href, '_blank')">R<span class="logo-dot">i</span>tot</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#learn-python">Learn Python</a></li>
+                <li><a href="#privacy">Privacy Policy</a></li>
+                <li><a href="#terms">Terms</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1>Welcome to R<span class="logo-dot">i</span>tot</h1>
+            <p>Empowering Innovation Through Technology and Learning</p>
+            <button class="cta-button" onclick="scrollToSection('about')">Explore More</button>
+        </div>
+    </section>
+
+    <section id="about">
+        <h2>About Ritot</h2>
+        <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 2rem;">
+            Ritot is a cutting-edge digital platform dedicated to fostering innovation, learning, and excellence in technology. We believe in creating meaningful experiences that empower individuals to grow, learn, and achieve their full potential.
+        </p>
+        
+        <div class="card-grid">
+            <div class="card">
+                <h3>Our Mission</h3>
+                <p>To provide accessible, high-quality resources that inspire innovation and continuous learning in the digital age.</p>
+                <button class="expand-btn" onclick="toggleInfo(this)">Learn More</button>
+                <div class="extra-info">
+                    <p>We strive to create an inclusive environment where everyone can access world-class educational resources. Our commitment extends to developing innovative solutions that address real-world challenges while maintaining the highest standards of quality and integrity.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Our Vision</h3>
+                <p>A world where technology and knowledge are accessible to all, driving positive change and unlimited possibilities.</p>
+                <button class="expand-btn" onclick="toggleInfo(this)">Learn More</button>
+                <div class="extra-info">
+                    <p>We envision a future where digital literacy is universal, and every individual has the tools and knowledge to participate in the digital economy. Through collaboration and innovation, we aim to break down barriers and create opportunities for global advancement.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Our Values</h3>
+                <p>Integrity, innovation, inclusivity, and continuous improvement guide everything we do.</p>
+                <button class="expand-btn" onclick="toggleInfo(this)">Learn More</button>
+                <div class="extra-info">
+                    <p>We operate with transparency and honesty, embrace creative problem-solving, welcome diverse perspectives, and constantly seek ways to improve. These core values shape our culture and drive our commitment to excellence in all our endeavors.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects">
+        <h2>Our Projects</h2>
+        <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 2rem;">
+            Discover our innovative projects that are making a difference in the digital world.
+        </p>
+        
+        <div class="card-grid">
+            <div class="card">
+                <h3>🚀 Project Alpha</h3>
+                <p>An advanced web platform revolutionizing online learning experiences with AI-powered personalization.</p>
+                <button class="expand-btn" onclick="toggleInfo(this)">View Details</button>
+                <div class="extra-info">
+                    <p><strong>Features:</strong> Adaptive learning paths, real-time progress tracking, interactive coding environments, peer collaboration tools, and comprehensive analytics. Built with cutting-edge technologies to ensure scalability and performance.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>💡 Project Beta</h3>
+                <p>A mobile-first application connecting learners with mentors worldwide for personalized guidance.</p>
+                <button class="expand-btn" onclick="toggleInfo(this)">View Details</button>
+                <div class="extra-info">
+                    <p><strong>Impact:</strong> Over 50,000 successful mentorship connections, 95% user satisfaction rate, available in 25 languages, and partnerships with leading educational institutions globally. Real-time video calls, scheduling, and resource sharing included.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>🎯 Project Gamma</h3>
+                <p>An open-source initiative providing free coding resources and challenges for aspiring developers.</p>
+                <button class="expand-btn" onclick="toggleInfo(this)">View Details</button>
+                <div class="extra-info">
+                    <p><strong>Resources:</strong> 500+ coding challenges, 100+ project ideas, interactive tutorials, community forums, career guidance, and certification programs. Join thousands of developers learning and growing together.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="learn-python">
+        <h2>Learn Python</h2>
+        <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 2rem;">
+            Master Python with our comprehensive, hands-on learning path designed for all skill levels.
+        </p>
+        
+        <div class="js-topics">
+            <div class="topic-item" onclick="toggleInfo(this)">
+                <h3>🟢 Beginner: Python Fundamentals</h3>
+                <p>Learn variables, data types, operators, and basic syntax.</p>
+                <div class="extra-info">
+                    <p><strong>Topics covered:</strong> Variables and naming conventions, data types (int, float, string, boolean), operators (arithmetic, comparison, logical), string methods and f-strings, user input and output, basic data structures (lists, tuples, dictionaries), and writing your first Python programs. Includes interactive exercises and projects.</p>
+                </div>
+            </div>
+            
+            <div class="topic-item" onclick="toggleInfo(this)">
+                <h3>🟡 Intermediate: Control Flow & Functions</h3>
+                <p>Master loops, conditionals, and create reusable functions.</p>
+                <div class="extra-info">
+                    <p><strong>Skills you'll gain:</strong> If-elif-else statements, for and while loops, list comprehensions, function definition and parameters, return values, lambda functions, scope and namespaces, error handling with try-except, and building modular code for real-world applications.</p>
+                </div>
+            </div>
+            
+            <div class="topic-item" onclick="toggleInfo(this)">
+                <h3>🔴 Advanced: Object-Oriented Programming & Modules</h3>
+                <p>Master OOP concepts, classes, inheritance, and working with modules.</p>
+                <div class="extra-info">
+                    <p><strong>Master these concepts:</strong> Classes and objects, attributes and methods, inheritance and polymorphism, encapsulation, magic methods (dunder methods), working with files (read/write), importing modules and packages, creating your own modules, and building scalable Python applications.</p>
+                </div>
+            </div>
+            
+            <div class="topic-item" onclick="toggleInfo(this)">
+                <h3>⚡ Expert: Data Science & Web Development</h3>
+                <p>Explore advanced libraries, APIs, and Python frameworks.</p>
+                <div class="extra-info">
+                    <p><strong>Advanced topics:</strong> NumPy and Pandas for data analysis, Matplotlib and Seaborn for visualization, web scraping with BeautifulSoup, REST APIs and requests library, Flask/Django basics, database integration (SQL), decorators and generators, async programming, and building production-ready applications.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="privacy">
+        <h2>Privacy Policy</h2>
+        <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 2rem;">
+            Your privacy is our priority. We are committed to protecting your personal information and being transparent about our practices.
+        </p>
+        
+        <div class="card">
+            <h3>Our Commitment to Your Privacy</h3>
+            <p>At Ritot, we respect your privacy and are committed to protecting your personal data. This policy outlines how we collect, use, and safeguard your information.</p>
+            <button class="expand-btn" onclick="toggleInfo(this)">Read Full Policy</button>
+            <div class="extra-info">
+                <p><strong>Data Collection:</strong> We only collect information necessary to provide and improve our services. This includes account details, usage data, and preferences.</p>
+                <p><strong>Data Usage:</strong> Your data is used solely to enhance your experience, provide personalized content, and improve our platform. We never sell your personal information to third parties.</p>
+                <p><strong>Security:</strong> We implement industry-standard security measures including encryption, secure servers, and regular security audits to protect your data.</p>
+                <p><strong>Your Rights:</strong> You have the right to access, modify, or delete your personal information at any time. Contact our support team for assistance.</p>
+                <p><strong>Cookies:</strong> We use cookies to improve functionality and user experience. You can manage cookie preferences in your browser settings.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="terms">
+        <h2>Terms of Service</h2>
+        <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 2rem;">
+            Please read these terms carefully. They govern your use of Ritot's services and ensure a positive experience for all users.
+        </p>
+        
+        <div class="card">
+            <h3>Terms & Conditions</h3>
+            <p>By using Ritot's services, you agree to these terms which are designed to create a safe, respectful, and productive environment for everyone.</p>
+            <button class="expand-btn" onclick="toggleInfo(this)">View All Terms</button>
+            <div class="extra-info">
+                <p><strong>Acceptable Use:</strong> Use our platform respectfully and legally. Prohibited activities include harassment, sharing inappropriate content, attempting unauthorized access, or any activities that harm other users or our services.</p>
+                <p><strong>Intellectual Property:</strong> All content, resources, and materials on Ritot are protected by copyright. You may use them for personal learning but not redistribute without permission.</p>
+                <p><strong>User Responsibilities:</strong> Maintain the security of your account, report any suspicious activity, respect other users, and provide accurate information.</p>
+                <p><strong>Service Availability:</strong> While we strive for 99.9% uptime, we cannot guarantee uninterrupted service. We'll notify users of planned maintenance in advance.</p>
+                <p><strong>Modifications:</strong> We reserve the right to update these terms. Users will be notified of significant changes, and continued use constitutes acceptance.</p>
+                <p><strong>Termination:</strong> We may suspend or terminate accounts that violate these terms. Users may close their accounts at any time through account settings.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="action-buttons">
+        <button class="action-btn" onclick="openShareModal()">📤 Send to Others</button>
+    </div>
+
+    <div class="share-modal" id="shareModal">
+        <div class="share-content">
+            <h3>Share Ritot Website</h3>
+            <div class="share-options">
+                <div class="share-option" onclick="shareViaEmail()">
+                    📧 Email
+                </div>
+                <div class="share-option" onclick="shareViaWhatsApp()">
+                    💬 WhatsApp
+                </div>
+                <div class="share-option" onclick="shareViaTwitter()">
+                    🐦 Twitter
+                </div>
+                <div class="share-option" onclick="shareViaFacebook()">
+                    📘 Facebook
+                </div>
+                <div class="share-option" onclick="shareViaTelegram()">
+                    ✈️ Telegram
+                </div>
+                <div class="share-option" onclick="copyLink()">
+                    🔗 Copy Link
+                </div>
+            </div>
+            <button class="close-modal" onclick="closeShareModal()">Close</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="#home">Home</a>
+            <a href="#about">About</a>
+            <a href="#projects">Projects</a>
+            <a href="#learn-python">Learn Python</a>
+            <a href="#privacy">Privacy</a>
+            <a href="#terms">Terms</a>
+        </div>
+        <p>&copy; 2026 Ritot. All rights reserved. Empowering innovation through technology.</p>
+        <p style="margin-top: 1rem; color: #888;">Built with passion for learning and growth 🚀</p>
+    </footer>
+
+    <script>
+        function toggleInfo(button) {
+            const card = button.closest('.card, .topic-item');
+            const extraInfo = card.querySelector('.extra-info');
+            
+            extraInfo.classList.toggle('active');
+            button.textContent = extraInfo.classList.contains('active') ? 'Show Less' : 
+                                 button.textContent.includes('Learn') ? 'Learn More' : 
+                                 button.textContent.includes('View') ? 'View Details' : 
+                                 button.textContent.includes('Read') ? 'Read Full Policy' : 'View All Terms';
+        }
+
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Share Modal Functions
+        function openShareModal() {
+            document.getElementById('shareModal').classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function shareViaEmail() {
+            const subject = encodeURIComponent('Check out Ritot Website!');
+            const body = encodeURIComponent('I found this amazing website called Ritot. Check it out: ' + window.location.href);
+            window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+        }
+
+        function shareViaWhatsApp() {
+            const text = encodeURIComponent('Check out this amazing Ritot website: ' + window.location.href);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+
+        function shareViaTwitter() {
+            const text = encodeURIComponent('Check out Ritot - Empowering Digital Excellence!');
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+        }
+
+        function shareViaFacebook() {
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+        }
+
+        function shareViaTelegram() {
+            const text = encodeURIComponent('Check out Ritot website!');
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+        }
+
+        function copyLink() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard! 🎉');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied to clipboard! 🎉');
+            });
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('shareModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeShareModal();
+            }
+        });
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Add scroll effect to navigation
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll <= 0) {
+                nav.style.boxShadow = 'none';
+            } else {
+                nav.style.boxShadow = '0 5px 20px rgba(255, 107, 53, 0.3)';
+            }
+            
+            lastScroll = currentScroll;
+        });
+    </script>
+</body>
+</html>
