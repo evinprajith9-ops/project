@@ -1,5 +1,12 @@
-age=int(input("Enter your age: "))
-if age > 10 and age < 20:
-  print("Your age is between 10 and 20")
-else:
-    print("Your age is not between 10 and 20")
+# Checking age between 10 and 20
+
+# age=int(input("Enter your age: "))
+# if age > 10 and age < 20:
+#   print("Your age is between 10 and 20")
+# else:
+#     print("Your age is not between 10 and 20")
+
+# converting into uppercase
+
+# message="Congratulation"
+# print(message.upper())
