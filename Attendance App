@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AttendanceDesk</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<style>
+:root {
+  --bg:#0d0d0d; --surface:#161616; --surface2:#1e1e1e;
+  --border:#272727; --text:#f0ece3; --muted:#5e5a55;
+  --accent:#e8c547; --accent-dim:rgba(232,197,71,0.1);
+  --green:#4caf78; --green-dim:rgba(76,175,120,0.1);
+  --red:#e05c5c; --red-dim:rgba(224,92,92,0.1);
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
+.page{display:none;min-height:100vh;flex-direction:column;animation:fi .22s ease;}
+.page.active{display:flex;}
+@keyframes fi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:1rem;}
+#loading .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+#loading p{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted);letter-spacing:.1em;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--border);background:rgba(13,13,13,.94);backdrop-filter:blur(14px);position:sticky;top:0;z-index:50;}
+.logo{font-weight:800;font-size:1.05rem;letter-spacing:-.02em;color:var(--accent);}
+.logo span{color:var(--text);}
+.btn-back{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Syne',sans-serif;font-size:.78rem;padding:5px 14px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.btn-back:hover{border-color:var(--text);color:var(--text);}
+
+/* HERO */
+.hero{padding:3.5rem 2rem 1.5rem;text-align:center;}
+.eyebrow{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:.9rem;}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(2.4rem,6vw,4.6rem);line-height:1.05;letter-spacing:-.02em;margin-bottom:.8rem;}
+.hero h1 em{font-style:italic;color:var(--accent);}
+.hero p{color:var(--muted);font-size:.9rem;max-width:380px;margin:0 auto 2rem;}
+
+/* WRAP */
+.wrap{padding:0 2rem 4rem;max-width:960px;margin:0 auto;width:100%;}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+.toolbar-label{font-family:'DM Mono',monospace;font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);}
+
+/* BUTTONS */
+.btn{font-family:'Syne',sans-serif;font-size:.82rem;font-weight:600;padding:.5rem 1.1rem;border-radius:7px;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-accent{background:var(--accent);color:#0d0d0d;}
+.btn-accent:hover{background:#f0d060;transform:translateY(-1px);}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--text);color:var(--text);}
+.btn-sm{padding:.3rem .8rem;font-size:.75rem;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.9rem;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem 1.2rem;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;}
+.card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.55);}
+.card-icon{width:40px;height:40px;border-radius:8px;background:var(--accent-dim);border:1px solid rgba(232,197,71,.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:1rem;}
+.card-name{font-weight:700;font-size:1rem;margin-bottom:.3rem;}
+.card-sub{font-family:'DM Mono',monospace;font-size:.67rem;color:var(--muted);}
+.card-actions{position:absolute;top:.65rem;right:.65rem;display:flex;gap:4px;opacity:0;transition:opacity .15s;}
+.card:hover .card-actions{opacity:1;}
+.icon-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:5px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.72rem;transition:all .12s;}
+.icon-btn:hover{border-color:var(--text);color:var(--text);}
+.icon-btn.del:hover{border-color:var(--red);color:var(--red);}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:3.5rem 2rem;color:var(--muted);}
+.empty-state .big{font-size:2.4rem;margin-bottom:.75rem;}
+.empty-state p{font-size:.86rem;line-height:1.7;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(7px);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2rem;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.7);animation:fi .2s ease;}
+.modal h2{font-size:1.2rem;font-weight:700;margin-bottom:.35rem;}
+.modal .sub{color:var(--muted);font-size:.82rem;margin-bottom:1.5rem;}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:.9rem;}
+.field label{font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);}
+.field input{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:.6rem .85rem;font-family:'Syne',sans-serif;font-size:.9rem;color:var(--text);outline:none;transition:border-color .15s;}
+.field input:focus{border-color:var(--accent);}
+.field input.err{border-color:var(--red);}
+.err-msg{color:var(--red);font-size:.73rem;margin-top:.25rem;display:none;}
+.err-msg.show{display:block;}
+.modal-footer{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.4rem;}
+
+/* PW MODAL */
+.pw-lock{text-align:center;margin-bottom:1.5rem;}
+.pw-lock .icon{font-size:2.4rem;margin-bottom:.5rem;}
+.pw-lock h2{font-size:1.25rem;}
+.pw-lock p{color:var(--muted);font-size:.82rem;margin-top:.3rem;}
+
+/* PAGE HEADER */
+.page-header{padding:1.5rem 2rem .5rem;max-width:960px;margin:0 auto;width:100%;}
+.page-header .crumb{font-family:'DM Mono',monospace;font-size:.63rem;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);margin-bottom:.4rem;}
+.page-header h2{font-size:1.7rem;font-weight:700;}
+.page-header .meta{color:var(--muted);font-size:.82rem;margin-top:.25rem;}
+
+/* TABS */
+.tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;}
+.tab{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:600;padding:.45rem 1rem;border-radius:7px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);transition:all .15s;}
+.tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--surface2);}
+thead th{font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);padding:.85rem 1rem;text-align:left;font-weight:500;}
+tbody tr{border-top:1px solid var(--border);transition:background .12s;}
+tbody tr:hover{background:var(--surface2);}
+tbody td{padding:.72rem 1rem;font-size:.87rem;vertical-align:middle;}
+.roll-badge{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);}
+.td-actions{display:flex;gap:6px;}
+
+/* ATTENDANCE */
+.chk{width:19px;height:19px;accent-color:var(--accent);cursor:pointer;}
+.time-cell input[type=time]{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.3rem .65rem;font-family:'DM Mono',monospace;font-size:.8rem;color:var(--text);outline:none;width:118px;transition:border-color .15s;}
+.time-cell input[type=time]:focus{border-color:var(--accent);}
+.time-locked{color:var(--muted);font-size:.72rem;font-family:'DM Mono',monospace;}
+
+/* PILLS */
+.pills{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.pill{font-family:'DM Mono',monospace;font-size:.7rem;padding:4px 12px;border-radius:99px;border:1px solid;display:flex;align-items:center;gap:5px;}
+.pill-total{background:var(--surface);border-color:var(--border);color:var(--muted);}
+.pill-done{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.pill-absent{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.pill-both{background:rgba(130,100,220,.1);border-color:rgba(150,120,240,.5);color:#b89fff;}
+.pill-pending{background:rgba(232,197,71,.07);border-color:rgba(232,197,71,.35);color:var(--accent);}
+
+/* DATE ROW */
+.date-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;}
+.date-row label{font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);}
+.date-row input[type=date]{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:.42rem .8rem;font-family:'DM Mono',monospace;font-size:.82rem;color:var(--text);outline:none;transition:border-color .15s;}
+.date-row input[type=date]:focus{border-color:var(--accent);}
+
+/* PERCENTAGE BAR */
+.pct-bar-wrap{width:100px;height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px;}
+.pct-bar{height:100%;border-radius:99px;transition:width .3s;}
+.pct-high{background:var(--green);}
+.pct-mid{background:var(--accent);}
+.pct-low{background:var(--red);}
+.pct-label{font-family:'DM Mono',monospace;font-size:.75rem;vertical-align:middle;}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.8rem;right:1.8rem;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:.72rem 1.2rem;font-size:.82rem;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:400;transform:translateY(10px);opacity:0;transition:all .2s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:var(--green);color:var(--green);}
+.toast.error{border-color:var(--red);color:var(--red);}
+
+@media(max-width:580px){
+  nav, .wrap, .page-header{padding-left:1rem;padding-right:1rem;}
+  .hero{padding:2rem 1rem 1rem;}
+  .grid{grid-template-columns:1fr 1fr;}
+  .modal{padding:1.5rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading SQLite database…</p>
+</div>
+
+<!-- ═══ PAGE: HOME ═══ -->
+<div class="page" id="page-home">
+  <nav>
+    <div class="logo">Attendance<span>Desk</span></div>
+    <button class="btn btn-accent btn-sm" onclick="openAddSection()">+ New Section</button>
+  </nav>
+  <div class="hero">
+    <div class="eyebrow">Classroom Manager</div>
+    <h1>Your <em>Sections</em><br>at a Glance</h1>
+    <p>Each section is password-protected. Click to unlock and take attendance.</p>
+  </div>
+  <div class="wrap">
+    <div class="toolbar">
+      <span class="toolbar-label" id="section-count">—</span>
+    </div>
+    <div class="grid" id="sections-grid"></div>
+    <div class="empty-state" id="sections-empty" style="display:none">
+      <div class="big">📋</div>
+      <p>No sections yet.<br>Click <strong>+ New Section</strong> to create one.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: STUDENTS ═══ -->
+<div class="page" id="page-students">
+  <nav>
+    <div class="logo" onclick="goHome()" style="cursor:pointer" title="Go to Home">Attendance<span>Desk</span></div>
+    <button class="btn-back" onclick="goHome()">← Home</button>
+  </nav>
+  <div class="page-header">
+    <div class="crumb">Section</div>
+    <h2 id="sp-name">—</h2>
+    <div class="meta" id="sp-desc"></div>
+  </div>
+  <div class="wrap">
+    <div class="tabs">
+      <button class="tab active" id="tab-btn-students" onclick="switchTab('students')">👥 Students</button>
+      <button class="tab" id="tab-btn-attendance" onclick="switchTab('attendance')">✅ Attendance</button>
+      <button class="tab" id="tab-btn-percentage" onclick="switchTab('percentage')">📊 Percentage</button>
+    </div>
+
+    <!-- STUDENTS TAB -->
+    <div id="tab-students">
+      <div class="toolbar">
+        <span class="toolbar-label" id="student-count">—</span>
+        <button class="btn btn-accent btn-sm" onclick="openAddStudent()">+ Add Student</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Roll No.</th><th>Actions</th></tr></thead>
+          <tbody id="students-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="students-empty" style="display:none;padding:2.5rem 2rem;">
+          <div class="big">🎓</div>
+          <p>No students yet.<br>Add your first student above.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE TAB -->
+    <div id="tab-attendance" style="display:none">
+      <div class="date-row">
+        <label>Date</label>
+        <input type="date" id="att-date" onchange="loadAttendance()"/>
+        <button class="btn btn-ghost btn-sm" onclick="saveAttendance()">💾 Save</button>
+      </div>
+      <div class="pills">
+        <div class="pill pill-total">Total: <strong id="att-total">0</strong></div>
+        <div class="pill pill-done">Present: <strong id="att-done">0</strong></div>
+        <div class="pill pill-absent">Absent: <strong id="att-absent">0</strong></div>
+        <div class="pill pill-both">Both: <strong id="att-both">0</strong></div>
+        <div class="pill pill-pending">Pending: <strong id="att-pending">0</strong></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Name</th>
+              <th style="text-align:center">Present</th>
+              <th style="text-align:center">Absent</th>
+              <th>Time of Entry</th>
+            </tr>
+          </thead>
+          <tbody id="att-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="att-empty" style="display:none;padding:2.5rem 2rem;">
+          <div class="big">📅</div>
+          <p>No students in this section.<br>Add students first.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERCENTAGE TAB -->
+    <div id="tab-percentage" style="display:none">
+      <div class="toolbar" style="margin-bottom:1rem;">
+        <span class="toolbar-label">Attendance percentage — all recorded days</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadPercentage()">🔄 Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Roll No.</th>
+              <th>Days Present</th>
+              <th>Days Absent</th>
+              <th>Total Days</th>
+              <th>Percentage</th>
+            </tr>
+          </thead>
+          <tbody id="pct-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="pct-empty" style="display:none;padding:2.5rem 2rem;">
+          <div class="big">📊</div>
+          <p>No attendance records yet.<br>Mark attendance first.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: ADD/EDIT SECTION ═══ -->
+<div class="overlay" id="modal-section">
+  <div class="modal">
+    <h2 id="ms-title">New Section</h2>
+    <div class="sub">Create a named, password-protected section.</div>
+    <div class="field">
+      <label>Section Name</label>
+      <input type="text" id="inp-sec-name" placeholder="e.g. Class 10-A"/>
+      <div class="err-msg" id="err-sec-name">Section name is required.</div>
+    </div>
+    <div class="field">
+      <label>Subject / Description</label>
+      <input type="text" id="inp-sec-desc" placeholder="e.g. Mathematics"/>
+    </div>
+    <div class="field">
+      <label id="pw-field-label">Password</label>
+      <input type="password" id="inp-sec-pw" placeholder="Set a password"/>
+      <div class="err-msg" id="err-sec-pw">Password is required for new sections.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-section')">Cancel</button>
+      <button class="btn btn-accent" onclick="saveSection()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: PASSWORD ═══ -->
+<div class="overlay" id="modal-pw">
+  <div class="modal">
+    <div class="pw-lock">
+      <div class="icon">🔐</div>
+      <h2 id="pw-title">Section Name</h2>
+      <p id="pw-subtitle">Enter the password to access this section.</p>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="inp-pw" placeholder="Enter password"
+             onkeydown="if(event.key==='Enter') verifyPassword()"/>
+      <div class="err-msg" id="err-pw">Incorrect password. Try again.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pw')">Cancel</button>
+      <button class="btn btn-accent" onclick="verifyPassword()">Unlock →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: ADD/EDIT STUDENT ═══ -->
+<div class="overlay" id="modal-student">
+  <div class="modal">
+    <h2 id="mst-title">Add Student</h2>
+    <div class="sub">Student will be saved to the current section.</div>
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="inp-stu-name" placeholder="e.g. Aarav Sharma"/>
+      <div class="err-msg" id="err-stu-name">Name is required.</div>
+    </div>
+    <div class="field">
+      <label>Roll Number</label>
+      <input type="text" id="inp-stu-roll" placeholder="e.g. R001"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-student')">Cancel</button>
+      <button class="btn btn-accent" onclick="saveStudent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATABASE — sql.js (SQLite compiled to WASM)
+//  Persisted in IndexedDB (primary) + localStorage (backup)
+// ══════════════════════════════════════════════
+const DB_KEY = 'attendancedesk_v1';
+let DB = null;
+
+async function initDB() {
+  const SQL = await initSqlJs({
+    locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`
+  });
+
+  let loaded = false;
+  const idbData = await loadFromIDB();
+  if (idbData) {
+    try { DB = new SQL.Database(idbData); loaded = true; } catch(e) {}
+  }
+  if (!loaded) {
+    const saved = localStorage.getItem(DB_KEY);
+    if (saved) {
+      try {
+        const bytes = Uint8Array.from(atob(saved), c => c.charCodeAt(0));
+        DB = new SQL.Database(bytes); loaded = true;
+      } catch(e) {}
+    }
+  }
+  if (!loaded) {
+    DB = new SQL.Database();
+  }
+
+  DB.run(`
+    CREATE TABLE IF NOT EXISTS sections (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      name        TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      password    TEXT NOT NULL,
+      created_at  TEXT DEFAULT (datetime('now','localtime'))
+    );
+    CREATE TABLE IF NOT EXISTS students (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      section_id INTEGER NOT NULL,
+      name       TEXT NOT NULL,
+      roll_no    TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY(section_id) REFERENCES sections(id)
+    );
+    CREATE TABLE IF NOT EXISTS attendance (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      student_id INTEGER NOT NULL,
+      section_id INTEGER NOT NULL,
+      date       TEXT NOT NULL,
+      present    INTEGER DEFAULT 0,
+      absent     INTEGER DEFAULT 0,
+      entry_time TEXT DEFAULT '',
+      UNIQUE(student_id, date),
+      FOREIGN KEY(student_id) REFERENCES students(id)
+    );
+  `);
+
+  save();
+}
+
+// ── Dual persistence: localStorage + IndexedDB ──
+const IDB_NAME = 'attendancedesk';
+const IDB_STORE = 'db';
+const IDB_KEY_VAL = 'main';
+
+function save() {
+  const data = DB.export();
+  const b64 = btoa(String.fromCharCode(...data));
+  try { localStorage.setItem(DB_KEY, b64); } catch(e) {}
+  saveToIDB(data);
+}
+
+function saveToIDB(data) {
+  const req = indexedDB.open(IDB_NAME, 1);
+  req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+  req.onsuccess = e => {
+    const db = e.target.result;
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(data, IDB_KEY_VAL);
+  };
+}
+
+function loadFromIDB() {
+  return new Promise((resolve) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => {
+      const db = e.target.result;
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const get = tx.objectStore(IDB_STORE).get(IDB_KEY_VAL);
+      get.onsuccess = () => resolve(get.result || null);
+      get.onerror   = () => resolve(null);
+    };
+    req.onerror = () => resolve(null);
+  });
+}
+
+function q(sql, params = []) {
+  const res = DB.exec(sql, params);
+  if (!res.length) return [];
+  const { columns, values } = res[0];
+  return values.map(r => Object.fromEntries(columns.map((c, i) => [c, r[i]])));
+}
+
+function run(sql, params = []) {
+  DB.run(sql, params);
+  save();
+}
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let currentSectionId = null;
+let editingSectionId = null;
+let editingStudentId = null;
+let pendingSectionId = null;
+let pendingEditId    = null;
+let pendingDeleteId  = null;
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  currentSectionId = null;
+  showPage('page-home');
+  renderHome();
+}
+
+// ══════════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════════
+const ICONS = ['📚','🔬','🎨','🏛️','🌍','🧮','💻','🎵','🏃','🔭','⚗️','📐'];
+
+function renderHome() {
+  const sections = q('SELECT * FROM sections ORDER BY name');
+  const grid = document.getElementById('sections-grid');
+  const empty = document.getElementById('sections-empty');
+
+  document.getElementById('section-count').textContent =
+    `${sections.length} section${sections.length !== 1 ? 's' : ''}`;
+
+  if (!sections.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = sections.map((s, i) => {
+    const cnt = q('SELECT COUNT(*) c FROM students WHERE section_id=?', [s.id])[0]?.c || 0;
+    return `
+      <div class="card" onclick="askPassword(${s.id})">
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <div class="icon-btn" title="Edit" onclick="openEditSection(${s.id})">✏️</div>
+          <div class="icon-btn del" title="Delete" onclick="deleteSection(${s.id})">🗑</div>
+        </div>
+        <div class="card-icon">${ICONS[i % ICONS.length]}</div>
+        <div class="card-name">${esc(s.name)}</div>
+        <div class="card-sub">${esc(s.description || '—')} · ${cnt} student${cnt !== 1 ? 's' : ''}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Section CRUD ──
+function openAddSection() {
+  editingSectionId = null;
+  document.getElementById('ms-title').textContent = 'New Section';
+  document.getElementById('inp-sec-name').value = '';
+  document.getElementById('inp-sec-desc').value = '';
+  document.getElementById('inp-sec-pw').value = '';
+  document.getElementById('pw-field-label').textContent = 'Password';
+  clearErr('modal-section');
+  openModal('modal-section');
+  setTimeout(() => document.getElementById('inp-sec-name').focus(), 150);
+}
+
+function openEditSection(id) {
+  pendingEditId = id;
+  const s = q('SELECT * FROM sections WHERE id=?', [id])[0];
+  document.getElementById('pw-title').textContent = s.name;
+  document.getElementById('pw-subtitle').textContent = 'Enter the password to edit this section.';
+  document.getElementById('inp-pw').value = '';
+  hideErrEl('err-pw');
+  document.getElementById('inp-pw').classList.remove('err');
+  openModal('modal-pw');
+  setTimeout(() => document.getElementById('inp-pw').focus(), 200);
+}
+
+function doOpenEditSection(id) {
+  editingSectionId = id;
+  const s = q('SELECT * FROM sections WHERE id=?', [id])[0];
+  document.getElementById('ms-title').textContent = 'Edit Section';
+  document.getElementById('inp-sec-name').value = s.name;
+  document.getElementById('inp-sec-desc').value = s.description || '';
+  document.getElementById('inp-sec-pw').value = '';
+  document.getElementById('pw-field-label').textContent = 'New Password (leave blank to keep current)';
+  clearErr('modal-section');
+  openModal('modal-section');
+}
+
+function saveSection() {
+  const name = document.getElementById('inp-sec-name').value.trim();
+  const desc = document.getElementById('inp-sec-desc').value.trim();
+  const pw   = document.getElementById('inp-sec-pw').value;
+  let ok = true;
+
+  if (!name) { showErrEl('err-sec-name'); markErr('inp-sec-name'); ok = false; }
+  else        { hideErrEl('err-sec-name'); }
+
+  if (!editingSectionId && !pw) { showErrEl('err-sec-pw'); markErr('inp-sec-pw'); ok = false; }
+  else                          { hideErrEl('err-sec-pw'); }
+
+  if (!ok) return;
+
+  if (editingSectionId) {
+    if (pw) run('UPDATE sections SET name=?,description=?,password=? WHERE id=?', [name, desc, pw, editingSectionId]);
+    else    run('UPDATE sections SET name=?,description=? WHERE id=?', [name, desc, editingSectionId]);
+    toast('Section updated ✓', 'success');
+  } else {
+    run('INSERT INTO sections(name,description,password) VALUES(?,?,?)', [name, desc, pw]);
+    toast('Section created ✓', 'success');
+  }
+  closeModal('modal-section');
+  renderHome();
+}
+
+function deleteSection(id) {
+  pendingDeleteId = id;
+  const s = q('SELECT * FROM sections WHERE id=?', [id])[0];
+  document.getElementById('pw-title').textContent = s.name;
+  document.getElementById('pw-subtitle').textContent = 'Enter the password to delete this section.';
+  document.getElementById('inp-pw').value = '';
+  hideErrEl('err-pw');
+  document.getElementById('inp-pw').classList.remove('err');
+  openModal('modal-pw');
+  setTimeout(() => document.getElementById('inp-pw').focus(), 200);
+}
+
+function doDeleteSection(id) {
+  run('DELETE FROM attendance WHERE section_id=?', [id]);
+  run('DELETE FROM students WHERE section_id=?', [id]);
+  run('DELETE FROM sections WHERE id=?', [id]);
+  toast('Section deleted', 'error');
+  renderHome();
+}
+
+// ── Password unlock ──
+function askPassword(id) {
+  pendingSectionId = id;
+  const s = q('SELECT * FROM sections WHERE id=?', [id])[0];
+  document.getElementById('pw-title').textContent = s.name;
+  document.getElementById('pw-subtitle').textContent = 'Enter the password to access this section.';
+  document.getElementById('inp-pw').value = '';
+  hideErrEl('err-pw');
+  document.getElementById('inp-pw').classList.remove('err');
+  openModal('modal-pw');
+  setTimeout(() => document.getElementById('inp-pw').focus(), 200);
+}
+
+function verifyPassword() {
+  const entered = document.getElementById('inp-pw').value;
+  const targetId = pendingEditId || pendingDeleteId || pendingSectionId;
+  const s = q('SELECT * FROM sections WHERE id=?', [targetId])[0];
+  if (entered === s.password) {
+    closeModal('modal-pw');
+    if (pendingEditId) {
+      const editId = pendingEditId;
+      pendingEditId = null;
+      doOpenEditSection(editId);
+    } else if (pendingDeleteId) {
+      const delId = pendingDeleteId;
+      pendingDeleteId = null;
+      if (confirm('Delete this section will delete all its students & attendance records? This cannot be undone.')) {
+        doDeleteSection(delId);
+      }
+    } else {
+      enterSection(pendingSectionId);
+    }
+  } else {
+    showErrEl('err-pw');
+    markErr('inp-pw');
+    document.getElementById('inp-pw').value = '';
+    document.getElementById('inp-pw').focus();
+  }
+}
+
+function enterSection(id) {
+  currentSectionId = id;
+  const s = q('SELECT * FROM sections WHERE id=?', [id])[0];
+  document.getElementById('sp-name').textContent = s.name;
+  document.getElementById('sp-desc').textContent = s.description || '';
+  switchTab('students');
+  showPage('page-students');
+  renderStudents();
+}
+
+// ══════════════════════════════════════════════
+//  STUDENTS
+// ══════════════════════════════════════════════
+function renderStudents() {
+  const list = q('SELECT * FROM students WHERE section_id=? ORDER BY roll_no,name', [currentSectionId]);
+  const tbody = document.getElementById('students-tbody');
+  const empty = document.getElementById('students-empty');
+
+  document.getElementById('student-count').textContent =
+    `${list.length} student${list.length !== 1 ? 's' : ''}`;
+
+  if (!list.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = list.map((s, i) => `
+    <tr>
+      <td class="roll-badge">${i + 1}</td>
+      <td>${esc(s.name)}</td>
+      <td class="roll-badge">${esc(s.roll_no || '—')}</td>
+      <td><div class="td-actions">
+        <div class="icon-btn" title="Edit" onclick="openEditStudent(${s.id})">✏️</div>
+        <div class="icon-btn del" title="Delete" onclick="deleteStudent(${s.id})">🗑</div>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openAddStudent() {
+  editingStudentId = null;
+  document.getElementById('mst-title').textContent = 'Add Student';
+  document.getElementById('inp-stu-name').value = '';
+  document.getElementById('inp-stu-roll').value = '';
+  clearErr('modal-student');
+  openModal('modal-student');
+  setTimeout(() => document.getElementById('inp-stu-name').focus(), 150);
+}
+
+function openEditStudent(id) {
+  editingStudentId = id;
+  const s = q('SELECT * FROM students WHERE id=?', [id])[0];
+  document.getElementById('mst-title').textContent = 'Edit Student';
+  document.getElementById('inp-stu-name').value = s.name;
+  document.getElementById('inp-stu-roll').value = s.roll_no || '';
+  clearErr('modal-student');
+  openModal('modal-student');
+}
+
+function saveStudent() {
+  const name = document.getElementById('inp-stu-name').value.trim();
+  const roll = document.getElementById('inp-stu-roll').value.trim();
+
+  if (!name) { showErrEl('err-stu-name'); markErr('inp-stu-name'); return; }
+  hideErrEl('err-stu-name');
+
+  if (editingStudentId) {
+    run('UPDATE students SET name=?,roll_no=? WHERE id=?', [name, roll, editingStudentId]);
+    toast('Student updated ✓', 'success');
+  } else {
+    run('INSERT INTO students(section_id,name,roll_no) VALUES(?,?,?)', [currentSectionId, name, roll]);
+    toast('Student added ✓', 'success');
+  }
+  closeModal('modal-student');
+  renderStudents();
+}
+
+function deleteStudent(id) {
+  if (!confirm('Remove this student and their attendance records?')) return;
+  run('DELETE FROM attendance WHERE student_id=?', [id]);
+  run('DELETE FROM students WHERE id=?', [id]);
+  toast('Student removed', 'error');
+  renderStudents();
+}
+
+// ══════════════════════════════════════════════
+//  ATTENDANCE
+// ══════════════════════════════════════════════
+function loadAttendance() {
+  const date = document.getElementById('att-date').value;
+  const students = q('SELECT * FROM students WHERE section_id=? ORDER BY roll_no,name', [currentSectionId]);
+  const tbody = document.getElementById('att-tbody');
+  const empty = document.getElementById('att-empty');
+
+  if (!students.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    updateAttSummary([]);
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = students.map((s, i) => {
+    let rec = { present: 0, absent: 0, entry_time: '' };
+    if (date) {
+      const r = q('SELECT * FROM attendance WHERE student_id=? AND date=?', [s.id, date]);
+      if (r.length) rec = r[0];
+    }
+    const both = rec.present && rec.absent;
+    const timeHtml = both
+      ? `<input type="time" id="time-${s.id}" value="${rec.entry_time || ''}"/>`
+      : `<span class="time-locked">check both →</span>`;
+
+    return `
+      <tr>
+        <td class="roll-badge">${i + 1}</td>
+        <td>${esc(s.name)}<br><span class="roll-badge">${esc(s.roll_no || '')}</span></td>
+        <td style="text-align:center">
+          <input class="chk" type="checkbox" id="pres-${s.id}" ${rec.present ? 'checked' : ''}
+                 onchange="onAttCheck(${s.id})"/>
+        </td>
+        <td style="text-align:center">
+          <input class="chk" type="checkbox" id="abs-${s.id}" ${rec.absent ? 'checked' : ''}
+                 onchange="onAttCheck(${s.id})"/>
+        </td>
+        <td class="time-cell" id="tc-${s.id}">${timeHtml}</td>
+      </tr>`;
+  }).join('');
+
+  updateAttSummary(students);
+}
+
+function onAttCheck(sid) {
+  const p = document.getElementById(`pres-${sid}`)?.checked;
+  const a = document.getElementById(`abs-${sid}`)?.checked;
+  const cell = document.getElementById(`tc-${sid}`);
+
+  if (p && a) {
+    const cur = document.getElementById(`time-${sid}`)?.value || '';
+    cell.innerHTML = `<input type="time" id="time-${sid}" value="${cur}"/>`;
+  } else {
+    cell.innerHTML = `<span class="time-locked">check both →</span>`;
+  }
+
+  const students = q('SELECT id FROM students WHERE section_id=?', [currentSectionId]);
+  updateAttSummary(students);
+}
+
+function updateAttSummary(students) {
+  let present = 0, absent = 0, both = 0, pending = 0;
+  students.forEach(s => {
+    const p = document.getElementById(`pres-${s.id}`)?.checked;
+    const a = document.getElementById(`abs-${s.id}`)?.checked;
+    if (p && a)      { both++; }
+    else if (p)      { present++; }
+    else if (a)      { absent++; }
+    else             { pending++; }
+  });
+  document.getElementById('att-total').textContent   = students.length;
+  document.getElementById('att-done').textContent    = present;
+  document.getElementById('att-absent').textContent  = absent;
+  document.getElementById('att-both').textContent    = both;
+  document.getElementById('att-pending').textContent = pending;
+}
+
+function saveAttendance() {
+  const date = document.getElementById('att-date').value;
+  if (!date) { toast('Select a date first', 'error'); return; }
+
+  const students = q('SELECT id FROM students WHERE section_id=?', [currentSectionId]);
+  if (!students.length) { toast('No students to save', 'error'); return; }
+
+  students.forEach(s => {
+    const p = document.getElementById(`pres-${s.id}`)?.checked ? 1 : 0;
+    const a = document.getElementById(`abs-${s.id}`)?.checked  ? 1 : 0;
+    const t = (p && a) ? (document.getElementById(`time-${s.id}`)?.value || '') : '';
+    run(`INSERT INTO attendance(student_id,section_id,date,present,absent,entry_time)
+         VALUES(?,?,?,?,?,?)
+         ON CONFLICT(student_id,date) DO UPDATE SET
+           present=excluded.present,
+           absent=excluded.absent,
+           entry_time=excluded.entry_time`,
+      [s.id, currentSectionId, date, p, a, t]);
+  });
+  toast('Attendance saved ✓', 'success');
+}
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('tab-btn-students').classList.toggle('active',   tab === 'students');
+  document.getElementById('tab-btn-attendance').classList.toggle('active', tab === 'attendance');
+  document.getElementById('tab-btn-percentage').classList.toggle('active', tab === 'percentage');
+  document.getElementById('tab-students').style.display   = tab === 'students'   ? 'block' : 'none';
+  document.getElementById('tab-attendance').style.display = tab === 'attendance' ? 'block' : 'none';
+  document.getElementById('tab-percentage').style.display = tab === 'percentage' ? 'block' : 'none';
+  if (tab === 'attendance') {
+    document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
+    loadAttendance();
+  }
+  if (tab === 'percentage') {
+    loadPercentage();
+  }
+}
+
+// ══════════════════════════════════════════════
+//  PERCENTAGE
+// ══════════════════════════════════════════════
+function loadPercentage() {
+  const students = q('SELECT * FROM students WHERE section_id=? ORDER BY roll_no,name', [currentSectionId]);
+  const tbody = document.getElementById('pct-tbody');
+  const empty = document.getElementById('pct-empty');
+
+  if (!students.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = students.map((s, i) => {
+    const records = q(
+      'SELECT present, absent FROM attendance WHERE student_id=? AND section_id=? AND (present=1 OR absent=1)',
+      [s.id, currentSectionId]
+    );
+
+    let effectivePresent = 0, presentDays = 0, absentDays = 0;
+
+    records.forEach(r => {
+      const p = r.present, a = r.absent;
+      if (p && a)      { effectivePresent += 0.5; }
+      else if (p)      { presentDays++; effectivePresent += 1; }
+      else if (a)      { absentDays++; }
+    });
+
+    const total    = records.filter(r => r.present || r.absent).length;
+    const pct      = total > 0 ? Math.round((effectivePresent / total) * 100) : 0;
+    const barClass = pct >= 75 ? 'pct-high' : pct >= 50 ? 'pct-mid' : 'pct-low';
+    const color    = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--accent)' : 'var(--red)';
+
+    return `
+      <tr>
+        <td class="roll-badge">${i + 1}</td>
+        <td>${esc(s.name)}</td>
+        <td class="roll-badge">${esc(s.roll_no || '—')}</td>
+        <td style="color:var(--green);font-family:'DM Mono',monospace;font-size:.82rem;">${presentDays}</td>
+        <td style="color:var(--red);font-family:'DM Mono',monospace;font-size:.82rem;">${absentDays}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:.82rem;">${total}</td>
+        <td>
+          <div class="pct-bar-wrap"><div class="pct-bar ${barClass}" style="width:${pct}%"></div></div>
+          <span class="pct-label" style="color:${color}">${pct}%</span>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  MODAL HELPERS
+// ══════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open');    document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+document.querySelectorAll('.overlay').forEach(o =>
+  o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); })
+);
+
+function clearErr(modalId) {
+  document.querySelectorAll(`#${modalId} .err-msg`).forEach(e => e.classList.remove('show'));
+  document.querySelectorAll(`#${modalId} input`).forEach(i => i.classList.remove('err'));
+}
+function showErrEl(id) { document.getElementById(id).classList.add('show'); }
+function hideErrEl(id) { document.getElementById(id).classList.remove('show'); }
+function markErr(id)   { document.getElementById(id).classList.add('err'); }
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════
+initDB().then(() => {
+  document.getElementById('loading').style.display = 'none';
+  showPage('page-home');
+  renderHome();
+}).catch(err => {
+  document.getElementById('loading').innerHTML =
+    `<p style="color:#e05c5c;font-family:monospace;padding:2rem;text-align:center">
+      Failed to load SQLite WASM.<br><br>${err.message}<br><br>
+      <small>Check your internet connection.</small>
+    </p>`;
+});
+</script>
+</body>
+</html>
